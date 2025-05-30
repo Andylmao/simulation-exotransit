@@ -48,7 +48,7 @@ def main():
     Angulo_inclinacion = st.sidebar.slider("Inclinación (grados)", -90, 90, 0, 1)
     Inclinacion = np.radians(90 + Angulo_inclinacion)
 
-    Pasos = 150
+    Pasos = 100
     Caja = 1.5 * Orbita
 
     col1, col2 = st.columns(2)
@@ -75,7 +75,7 @@ def main():
         fig, axs = plt.subplots(2, 1, figsize=(8, 10))
 
         # Subplot 1: órbita
-        fig1, ax1 = plt.subplots(figsize=(5, 5))
+        fig1, ax1 = plt.subplots(figsize=(8, 8))
         ax1.set_xlim(-Caja, Caja)
         ax1.set_ylim(-Caja, Caja)
         ax1.set_aspect('equal')
@@ -87,7 +87,7 @@ def main():
         ax1.add_patch(planeta)
 
         # Subplot 2: curva de luz
-        fig2, ax2 = plt.subplots(figsize=(5, 5))
+        fig2, ax2 = plt.subplots(figsize=(8, 8))
         ax2.set_xlim(0, Pasos)
         ax2.set_ylim(min(brillo) - 0.5, 101)
         ax2.set_title("Curva de luz simulada", color='white')
