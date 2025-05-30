@@ -1,19 +1,74 @@
-# 🎈 Blank app template
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://tuaplicacion.streamlit.app/)
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/licenses/MIT)
 
-A simple Streamlit app template for you to modify!
+An interactive educational app for simulating exoplanet transits and orbital dynamics using astrophysical models. Perfect for astronomy educators, students, and space enthusiasts!
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
+App Screenshot
+(Replace with actual screenshot URL after deployment)
 
-### How to run it on your own machine
+## 🚀 **Features**
+**Realistic Transit Simulations**: Visualize exoplanet transits across host stars
 
-1. Install the requirements
+**Customizable Parameters**: Adjust orbital periods, planet radii, and inclination angles
 
-   ```
-   $ pip install -r requirements.txt
-   ```
+**Educational Visualizations**: Interactive light curves and 3D orbital projections
 
-2. Run the app
+**Physics-Based Calculations**: Built on Keplerian orbital mechanics
 
-   ```
-   $ streamlit run streamlit_app.py
-   ```
+**Exportable Data**: Save simulation results for classroom use
+
+## 📦 **Installation**
+Clone the repository:
+
+bash
+```
+git clone https://github.com/yourusername/exotransits-simulator.git
+cd exotransits-simulator
+```
+Install dependencies:
+
+bash
+```
+pip install -r requirements.txt
+```
+## 🖥️ **Usage**
+Start the app locally:
+
+
+bash
+```
+streamlit run exoTransits.py
+```
+
+Access the following features through the interactive sidebar:
+
+* Set planetary system parameters
+
+* Control simulation speed and duration
+
+* Toggle between different visualization modes
+
+* Compare multiple exoplanet systems
+
+📚 **Educational Applications**
+* Demonstrate transit photometry methods
+
+* Explore orbital mechanics concepts
+
+* Visualize planet-star size relationships
+
+* Analyze light curve characteristics
+
+* Understand the transit timing variation method
+
+
+📜 License
+Distributed under the MIT License. See LICENSE for more information.
+
+🌟 Acknowledgements
+* Built with Streamlit
+
+* Orbital calculations using Astropy
+
+* Inspired by NASA's Exoplanet Archive
