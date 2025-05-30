@@ -3,6 +3,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 import time
+import matplotlib as mpl
+
+mpl.style.use('dark_background')
+
+st.markdown("""
+    <style>
+    .stApp {
+        background-color: #000000;
+        color: white;
+    }
+      
+
+    </style>
+""", unsafe_allow_html=True)
 
 def area_interseccion_circulos(x1, y1, r1, x2, y2, z1, r2):
     d = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
@@ -21,8 +35,8 @@ def area_interseccion_circulos(x1, y1, r1, x2, y2, z1, r2):
         return term1 + term2 - term3
 
 def main():
-    st.title("🌑 Simulación de Tránsito de Exoplaneta en Tiempo Real")
-    st.sidebar.header("Parámetros de Simulación")
+    st.title("🪐 Simulación de Tránsito de Exoplaneta en Tiempo Real")
+    st.sidebar.header("⚙️ Parámetros de Simulación")
     # Parámetros
     Radio_star = 10
     Rpf = st.sidebar.slider("Radio del planeta / Radio estrella", 0.01, 0.4, 0.1, 0.01)
@@ -37,7 +51,9 @@ def main():
     Pasos = 150
     Caja = 1.5 * Orbita
 
-    placeholder = st.empty()
+    col1, col2 = st.columns(2)
+    placeholder_orbita = col1.empty()
+    placeholder_curva = col2.empty()
 
     brillo = []
     for frame in range(Pasos):
@@ -59,25 +75,32 @@ def main():
         fig, axs = plt.subplots(2, 1, figsize=(8, 10))
 
         # Subplot 1: órbita
-        axs[0].set_xlim(-Caja, Caja)
-        axs[0].set_ylim(-Caja, Caja)
-        axs[0].set_aspect('equal')
-        axs[0].set_title("Órbita del planeta")
-        estrella = Circle((0, 0), Radio_star, color='yellow')
-        planeta = Circle((x, y), Radio_planet, color='red')
-        axs[0].add_patch(estrella)
-        axs[0].add_patch(planeta)
+        fig1, ax1 = plt.subplots(figsize=(5, 5))
+        ax1.set_xlim(-Caja, Caja)
+        ax1.set_ylim(-Caja, Caja)
+        ax1.set_aspect('equal')
+        ax1.set_title("Órbita del planeta", color='white')
+        ax1.set_facecolor("#0a0f2c")
+        estrella = Circle((0, 0), Radio_star, color='#FFD700')
+        planeta = Circle((x, y), Radio_planet, color='#8A2BE2')
+        ax1.add_patch(estrella)
+        ax1.add_patch(planeta)
 
         # Subplot 2: curva de luz
-        axs[1].set_xlim(0, Pasos)
-        axs[1].set_ylim(min(brillo) - 0.5, 101)
-        axs[1].set_title("Curva de luz simulada")
-        axs[1].set_xlabel("Tiempo (frames)")
-        axs[1].set_ylabel("Brillo (%)")
-        axs[1].plot(brillo, color='red')
-        axs[1].scatter(frame, brillo_val, color='blue', zorder=5)
+        fig2, ax2 = plt.subplots(figsize=(5, 5))
+        ax2.set_xlim(0, Pasos)
+        ax2.set_ylim(min(brillo) - 0.5, 101)
+        ax2.set_title("Curva de luz simulada", color='white')
+        ax2.set_xlabel("Tiempo (frames)", color='white')
+        ax2.set_ylabel("Brillo (%)", color='white')
+        ax2.set_facecolor("#0a0f2c")
+        ax2.tick_params(colors='white')
+        ax2.plot(brillo, color='#00BFFF')
+        ax2.scatter(frame, brillo_val, color='#7CFC00', zorder=5)
 
-        placeholder.pyplot(fig)
+
+        placeholder_orbita.pyplot(fig1)
+        placeholder_curva.pyplot(fig2)
         time.sleep(0.03)  # Velocidad de animación
 
 if __name__ == "__main__":
