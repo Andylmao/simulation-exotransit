@@ -65,7 +65,7 @@ def main():
             brillo_val = 100 * (1 - inter / (np.pi * Radio_star**2))
         brillo.append(brillo_val)
 
-        fig, axs = plt.subplots(1, 2, figsize=(14, 6))
+        fig, axs = plt.subplots(1, 2, figsize=(18, 10))
         axs = axs.flatten()
 
         # Subplot 1: órbita sin estrellas
