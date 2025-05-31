@@ -16,6 +16,26 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<style>
+/* Fondo gris claro del track */
+div[data-testid="stSidebar"] div[data-baseweb="slider"] > div[data-testid="stTickBar"] {
+    background: rgba(200, 200, 200, 0.3) !important;
+}
+
+/* Barra de progreso: la parte llena */
+div[data-testid="stSidebar"] div[data-baseweb="slider"] > div > div > div[role="progressbar"] {
+    background-color: #8A2BE2 !important; /* morado */
+}
+
+/* Thumb (el círculo que se mueve) */
+div[data-testid="stSidebar"] div[data-baseweb="slider"] > div > div > div[role="slider"] {
+    background-color: #8A2BE2 !important; /* gris claro */
+    box-shadow: none !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 def area_interseccion_circulos(x1, y1, r1, x2, y2, z1, r2):
     d = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
     if d >= r1 + r2:
@@ -38,10 +58,13 @@ def main():
 
     if st.session_state.mostrar_info:
         with st.expander("ℹ️ Sugerencia de visualización", expanded=True):
-            st.markdown("Puedes maximizar las gráficas usando el ícono 🔳 en la esquina superior de la gráfica")
+            st.markdown("💡 Puedes maximizar las gráficas usando el ícono 🔳 en la esquina superior de la gráfica")
             
     st.title("🪐 Simulación de Tránsito de Exoplaneta en Tiempo Real")
     st.sidebar.header("⚙️ Parámetros de Simulación")
+    st.sidebar.markdown("""
+    Modifica los parámetros para observar cómo afectan la órbita y la curva de luz del exoplaneta.
+    """)
     
     Radio_star = 10
     Rpf = st.sidebar.slider("Radio del planeta / Radio estrella", 0.01, 0.4, 0.1, 0.01)
