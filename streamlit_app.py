@@ -92,6 +92,7 @@ def main():
         axs[1].scatter(frame, brillo_val, color='#7CFC00', zorder=5)
 
         placeholder.pyplot(fig, use_container_width=True)
+        plt.close(fig)  
         time.sleep(0.03)
 
 if __name__ == "__main__":
