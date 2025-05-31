@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 import time
 import matplotlib as mpl
+import pandas as pd
+import matplotlib.colors as mcolors
 
 mpl.style.use('dark_background')
 
@@ -13,27 +15,24 @@ st.markdown("""
         background-color: #000000;
         color: white;
     }
+    .stSlider > div > div > div[role="slider"] {
+        background-color: #8A2BE2 !important;
+    }
+    .metric-box {
+        background-color: #1a1f4c;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 10px 0;
+        border: 1px solid #8A2BE2;
+    }
+    .header-box {
+        background-color: #1a1f4c;
+        border-radius: 10px;
+        padding: 10px 15px;
+        margin-bottom: 20px;
+        border-left: 5px solid #8A2BE2;
+    }
     </style>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-<style>
-/* Fondo gris claro del track */
-div[data-testid="stSidebar"] div[data-baseweb="slider"] > div[data-testid="stTickBar"] {
-    background: rgba(200, 200, 200, 0.3) !important;
-}
-
-/* Barra de progreso: la parte llena */
-div[data-testid="stSidebar"] div[data-baseweb="slider"] > div > div > div[role="progressbar"] {
-    background-color: #8A2BE2 !important; /* morado */
-}
-
-/* Thumb (el círculo que se mueve) */
-div[data-testid="stSidebar"] div[data-baseweb="slider"] > div > div > div[role="slider"] {
-    background-color: #8A2BE2 !important; /* gris claro */
-    box-shadow: none !important;
-}
-</style>
 """, unsafe_allow_html=True)
 
 def area_interseccion_circulos(x1, y1, r1, x2, y2, z1, r2):
@@ -53,14 +52,39 @@ def area_interseccion_circulos(x1, y1, r1, x2, y2, z1, r2):
         return term1 + term2 - term3
 
 def main():
+    # Estado para la simulación
     if "mostrar_info" not in st.session_state:
         st.session_state.mostrar_info = True
 
+    # Cargar datos de exoplanetas
+    @st.cache_data
+    def load_exoplanet_data():
+        try:
+            # Reemplaza con la ruta real de tu archivo CSV
+            file_id = '151ckMJSKqvf3dRS3Vk2IIT0nuRqtWp44'
+            url = f'https://drive.google.com/uc?export=download&id={file_id}'
+            df = pd.read_csv(url)
+            
+            # Limpieza básica de datos
+            df = df.dropna(subset=['disc_year'])
+            df['disc_year'] = df['disc_year'].astype(int)
+            
+            # Crear columna de masa en masas terrestres
+            # 1 masa de Júpiter = 317.83 masas terrestres
+            df['earth_mass'] = df['pl_msinie'] * 317.83
+            
+            return df
+        except Exception as e:
+            st.error(f"Error cargando datos de exoplanetas: {str(e)}")
+            return pd.DataFrame()
+
+    # Iniciar simulación de tránsito
+    st.title("🪐 Simulación de Tránsito de Exoplaneta en Tiempo Real")
+    
     if st.session_state.mostrar_info:
         with st.expander("ℹ️ Sugerencia de visualización", expanded=True):
             st.markdown("💡 Puedes maximizar las gráficas usando el ícono 🔳 en la esquina superior de la gráfica")
-            
-    st.title("🪐 Simulación de Tránsito de Exoplaneta en Tiempo Real")
+    
     st.sidebar.header("⚙️ Parámetros de Simulación")
     st.sidebar.markdown("""
     Modifica los parámetros para observar cómo afectan la órbita y la curva de luz del exoplaneta.
@@ -82,6 +106,7 @@ def main():
     placeholder = st.empty()
     brillo = []
 
+    # Ejecutar simulación de tránsito
     for frame in range(Pasos):
         theta = 2 * np.pi * frame / Pasos
         x = np.cos(theta) * Orbita
@@ -98,7 +123,7 @@ def main():
         fig, axs = plt.subplots(1, 2, figsize=(18, 10))
         axs = axs.flatten()
 
-        # Subplot 1: órbita sin estrellas
+        # Subplot 1: órbita
         axs[0].set_xlim(-Caja, Caja)
         axs[0].set_ylim(-Caja, Caja)
         axs[0].set_aspect('equal')
@@ -124,6 +149,157 @@ def main():
         placeholder.pyplot(fig, use_container_width=True)
         plt.close(fig)  
         time.sleep(0.02)
+    
+    # =============================================================================
+    # NUEVA SECCIÓN: VISUALIZACIÓN DE EXOPLANETAS DESCUBIERTOS (MASA vs PERÍODO)
+    # =============================================================================
+    st.markdown("---")
+    st.markdown('<div class="header-box"><h2>📊 Exoplanetas Descubiertos: Masa vs Período Orbital</h2></div>', unsafe_allow_html=True)
+    
+    # Cargar datos de exoplanetas
+    df = load_exoplanet_data()
+    
+    if not df.empty:
+        # Calcular el rango de años
+        min_year = int(df['disc_year'].min())
+        max_year = int(df['disc_year'].max())
+        current_year = 2025  # Puedes cambiarlo al año actual si prefieres
+        
+        # Crear columnas para controles y métricas
+        col_controls, col_metrics = st.columns([1, 3])
+        
+        with col_controls:
+            # Slider para seleccionar el año
+            selected_year = st.slider(
+                "Año de descubrimiento",
+                min_value=min_year,
+                max_value=current_year,
+                value=min_year,
+                key="year_slider",
+                format="%d"
+            )
+            
+            # Selector para métodos de descubrimiento
+            methods = df['discoverymethod'].dropna().unique()
+            selected_methods = st.multiselect(
+                "Métodos de descubrimiento",
+                options=methods,
+                default=methods,
+                key="method_selector"
+            )
+            
+            # Mostrar información sobre métodos
+            st.markdown("""
+            <div class="metric-box">
+                <p><strong>Métodos de descubrimiento:</strong></p>
+                <p>● Transit: Tránsito</p>
+                <p>● Radial Velocity: Velocidad Radial</p>
+                <p>● Microlensing: Microlente</p>
+                <p>● Imaging: Imagen directa</p>
+                <p>● Timing: Púlsar/Timing</p>
+                <p>● Other: Otros métodos</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col_metrics:
+            # Filtrar datos hasta el año seleccionado
+            df_filtered = df[(df['disc_year'] <= selected_year) & 
+                             (df['discoverymethod'].isin(selected_methods))]
+            
+            # Calcular estadísticas
+            planets_count = len(df_filtered)
+            years_covered = selected_year - min_year + 1
+            avg_per_year = planets_count / years_covered if years_covered > 0 else 0
+            
+            # Mostrar métricas
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.markdown(f'<div class="metric-box"><h3>🌍 {planets_count}</h3><p>Exoplanetas descubiertos</p></div>', 
+                           unsafe_allow_html=True)
+            with col2:
+                st.markdown(f'<div class="metric-box"><h3>📅 {selected_year}</h3><p>Año seleccionado</p></div>', 
+                           unsafe_allow_html=True)
+            with col3:
+                st.markdown(f'<div class="metric-box"><h3>📈 {avg_per_year:.1f}</h3><p>Promedio por año</p></div>', 
+                           unsafe_allow_html=True)
+        
+        # Crear figura principal
+        fig, ax = plt.subplots(figsize=(12, 8))
+        fig.patch.set_facecolor('#0a0f2c')
+        ax.set_facecolor('#0a0f2c')
+        
+        # Configurar escalas logarítmicas
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        
+        # Definir colores por método de descubrimiento
+        method_colors = {
+            'Transit': '#FFD700',      # Amarillo
+            'Radial Velocity': '#8A2BE2',  # Morado
+            'Microlensing': '#00BFFF',     # Azul claro
+            'Imaging': '#7CFC00',       # Verde
+            'Pulsar Timing': '#FF6347', # Rojo anaranjado
+            'Timing': '#FF6347',        # Rojo anaranjado
+            'Other': '#A9A9A9'          # Gris
+        }
+        
+        # Crear dispersión
+        for method in selected_methods:
+            method_df = df_filtered[df_filtered['discoverymethod'] == method]
+            if not method_df.empty:
+                color = method_colors.get(method, '#A9A9A9')
+                ax.scatter(
+                    method_df['pl_orbper'],
+                    method_df['earth_mass'],
+                    s=40,
+                    alpha=0.7,
+                    color=color,
+                    label=method
+                )
+        
+        # Líneas de referencia para planetas
+        ax.axhline(y=1, color='white', linestyle='--', alpha=0.3)
+        ax.axhline(y=317.83, color='white', linestyle='--', alpha=0.3)  # 1 Júpiter
+        ax.axvline(x=365, color='white', linestyle='--', alpha=0.3)     # 1 año
+        ax.axvline(x=1, color='white', linestyle='--', alpha=0.3)       # 1 día
+        
+        # Etiquetas de referencia
+        ax.text(0.5, 0.5, 'Tierra', color='white', alpha=0.7, fontsize=9, 
+                transform=ax.get_yaxis_transform(), va='center')
+        ax.text(0.5, 317.83*1.1, 'Júpiter', color='white', alpha=0.7, fontsize=9,
+                transform=ax.get_yaxis_transform(), va='bottom')
+        ax.text(1.2, 0.02, '1 día', color='white', alpha=0.7, fontsize=9, rotation=90)
+        ax.text(400, 0.02, '1 año', color='white', alpha=0.7, fontsize=9, rotation=90)
+        
+        # Etiquetas de ejes
+        ax.set_xlabel("Período Orbital (días, escala log)", fontsize=12, color='white')
+        ax.set_ylabel("Masa del Planeta (Masas Terrestres, escala log)", fontsize=12, color='white')
+        ax.set_title(f"Exoplanetas descubiertos hasta {selected_year}", fontsize=16, color='white')
+        
+        # Leyenda
+        ax.legend(
+            loc='upper right',
+            facecolor='#1a1f4c',
+            edgecolor='none',
+            fontsize=10,
+            framealpha=0.7
+        )
+        
+        # Límites de ejes
+        ax.set_xlim(0.1, 10000)
+        ax.set_ylim(0.1, 1000000)
+        
+        # Cuadrícula
+        ax.grid(True, which="both", ls="--", color='#2a2f5c', alpha=0.5)
+        
+        # Mostrar gráfico
+        st.pyplot(fig, use_container_width=True)
+        plt.close(fig)
+        
+        # Pie de página
+        st.caption("Nota: Los datos muestran exoplanetas confirmados. La masa se calcula en masas terrestres (1 masa de Júpiter = 317.83 masas terrestres).")
+    else:
+        st.warning("No se encontraron datos de exoplanetas para mostrar.")
 
 if __name__ == "__main__":
     main()
