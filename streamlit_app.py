@@ -33,6 +33,13 @@ def area_interseccion_circulos(x1, y1, r1, x2, y2, z1, r2):
         return term1 + term2 - term3
 
 def main():
+    if "mostrar_info" not in st.session_state:
+        st.session_state.mostrar_info = True
+
+    if st.session_state.mostrar_info:
+        with st.expander("ℹ️ Sugerencia de visualización", expanded=True):
+            st.markdown("Puedes maximizar las gráficas usando el ícono 🔳 en la esquina superior de la gráfica")
+            
     st.title("🪐 Simulación de Tránsito de Exoplaneta en Tiempo Real")
     st.sidebar.header("⚙️ Parámetros de Simulación")
     
