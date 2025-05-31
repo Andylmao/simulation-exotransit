@@ -93,7 +93,7 @@ def main():
 
         placeholder.pyplot(fig, use_container_width=True)
         plt.close(fig)  
-        time.sleep(0.03)
+        time.sleep(0.02)
 
 if __name__ == "__main__":
     main()
