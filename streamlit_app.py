@@ -61,7 +61,7 @@ def main():
     def load_exoplanet_data():
         try:
             # Reemplaza con la ruta real de tu archivo CSV
-            url = 'https://github.com/Andylmao/simulation-exotransit/blob/56c8235b14ccb796fee16eb83dfe8999254c5d75/planetas_consolidadosGauss.csv'
+            url = 'https://raw.githubusercontent.com/Andylmao/simulation-exotransit/56c8235b14ccb796fee16eb83dfe8999254c5d75/planetas_consolidadosGauss.csv'
             df = pd.read_csv(url)
             
             # Limpieza básica de datos
@@ -295,7 +295,7 @@ def main():
         plt.close(fig)
         
         # Pie de página
-        st.caption("Nota: Los datos muestran exoplanetas confirmados. La masa se calcula en masas terrestres (1 masa de Júpiter = 317.83 masas terrestres).")
+        st.caption("Nota: Los datos muestran exoplanetas confirmados. Lineas rectas debido a valores sin cálculo de masa")
     else:
         st.warning("No se encontraron datos de exoplanetas para mostrar.")
 
