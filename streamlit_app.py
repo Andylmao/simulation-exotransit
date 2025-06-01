@@ -61,17 +61,15 @@ def main():
     def load_exoplanet_data():
         try:
             # Reemplaza con la ruta real de tu archivo CSV
-            file_id = '151ckMJSKqvf3dRS3Vk2IIT0nuRqtWp44'
-            url = f'https://drive.google.com/uc?export=download&id={file_id}'
+            url = 'https://github.com/Andylmao/simulation-exotransit/blob/56c8235b14ccb796fee16eb83dfe8999254c5d75/planetas_consolidadosGauss.csv'
             df = pd.read_csv(url)
             
             # Limpieza básica de datos
-            df = df.dropna(subset=['disc_year'])
-            df['disc_year'] = df['disc_year'].astype(int)
+            expected_columns = ['disc_year', 'discoverymethod', 'pl_bmasse', 'pl_orbper']
+            if not all(col in df.columns for col in expected_columns):
+                raise ValueError("Faltan columnas necesarias en el archivo CSV.")
             
-            # Crear columna de masa en masas terrestres
-            # 1 masa de Júpiter = 317.83 masas terrestres
-            df['earth_mass'] = df['pl_msinie'] * 317.83
+           
             
             return df
         except Exception as e:
@@ -250,7 +248,7 @@ def main():
                 color = method_colors.get(method, '#A9A9A9')
                 ax.scatter(
                     method_df['pl_orbper'],
-                    method_df['earth_mass'],
+                    method_df['pl_bmasse'],
                     s=40,
                     alpha=0.7,
                     color=color,
