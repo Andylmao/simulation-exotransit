@@ -85,7 +85,9 @@ def main():
     
     st.sidebar.header("⚙️ Parámetros de Simulación")
     st.sidebar.markdown("""
-    Modifica los parámetros para observar cómo afectan la órbita y la curva de luz del exoplaneta.
+    - Modifica los parámetros para observar cómo afectan la órbita y la curva de luz del exoplaneta 
+                        \n - Después inicia la simulación 🚀🌕
+                        \n - Debajo puedes observar una gráfica que muestra un histórico de descubrimiento de exoplanetas 📡🪐
     """)
     
     Radio_star = 10
@@ -117,7 +119,7 @@ def main():
     brillo_val = 100 if z > 0 else 100 * (1 - inter / (np.pi * Radio_star**2))
     brillo = [brillo_val]
 
-    fig, axs = plt.subplots(1, 2, figsize=(18, 10))
+    fig, axs = plt.subplots(1, 2, figsize=(13, 5))
     axs = axs.flatten()
 
     # Subplot 1: órbita
@@ -270,7 +272,7 @@ def main():
                            unsafe_allow_html=True)
         
         # Crear figura principal
-        fig, ax = plt.subplots(figsize=(12, 8))
+        fig, ax = plt.subplots(figsize=(10, 6))
         fig.patch.set_facecolor('#0a0f2c')
         ax.set_facecolor('#0a0f2c')
         
