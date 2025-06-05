@@ -102,7 +102,7 @@ def main():
 
 
     
-    Pasos = 100
+    Pasos = 70
     Caja = 1.5 * Orbita
 
     placeholder = st.empty()
@@ -195,7 +195,7 @@ def main():
 
             placeholder.pyplot(fig, use_container_width=True)
             plt.close(fig)
-            time.sleep(0.02)
+            time.sleep(0.005)
     
     # =============================================================================
     # NUEVA SECCIÓN: VISUALIZACIÓN DE EXOPLANETAS DESCUBIERTOS (MASA vs PERÍODO)
