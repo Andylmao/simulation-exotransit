@@ -2,13 +2,15 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
-import time
+import matplotlib.animation as animation
 import matplotlib as mpl
 import pandas as pd
-import matplotlib.colors as mcolors
+import streamlit.components.v1 as components
+
 st.set_page_config(layout="wide")
 mpl.style.use('dark_background')
 
+# Configuración de estilo
 st.markdown("""
     <style>
     .stApp {
@@ -60,16 +62,12 @@ def main():
     @st.cache_data
     def load_exoplanet_data():
         try:
-            # Reemplaza con la ruta real de tu archivo CSV
             url = 'https://raw.githubusercontent.com/Andylmao/simulation-exotransit/56c8235b14ccb796fee16eb83dfe8999254c5d75/planetas_consolidadosGauss.csv'
             df = pd.read_csv(url)
             
-            # Limpieza básica de datos
             expected_columns = ['disc_year', 'discoverymethod', 'pl_bmasse', 'pl_orbper']
             if not all(col in df.columns for col in expected_columns):
                 raise ValueError("Faltan columnas necesarias en el archivo CSV.")
-            
-           
             
             return df
         except Exception as e:
@@ -100,123 +98,106 @@ def main():
     Angulo_inclinacion = st.sidebar.slider("Inclinación (grados)", -90, 90, 0, 1)
     Inclinacion = np.radians(90 + Angulo_inclinacion)
 
-
-    
     Pasos = 70
     Caja = 1.5 * Orbita
 
-    placeholder = st.empty()
-    brillo = []
-
-    # Ejecutar simulación de tránsito
-    # Primer frame antes de la animación
-    theta = 0
-    x = np.cos(theta) * Orbita
-    y = np.sin(theta) * Orbita * np.cos(Inclinacion)
-    z = np.sin(theta) * Orbita
-
-    inter = area_interseccion_circulos(0, 0, Radio_star, x, y, z, Radio_planet)
-    brillo_val = 100 if z > 0 else 100 * (1 - inter / (np.pi * Radio_star**2))
-    brillo = [brillo_val]
-
-    fig, axs = plt.subplots(1, 2, figsize=(13, 5))
-    axs = axs.flatten()
-
-    # Subplot 1: órbita
-    axs[0].set_xlim(-Caja, Caja)
-    axs[0].set_ylim(-Caja, Caja)
-    axs[0].set_aspect('equal')
-    axs[0].set_title("Órbita del planeta", color='white')
-    axs[0].set_facecolor("#0a0f2c")
-    axs[0].tick_params(colors='white')
+    # Configuración de la figura para la animación
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 5))
+    
+    # Configurar subplot 1 (órbita)
+    ax1.set_xlim(-Caja, Caja)
+    ax1.set_ylim(-Caja, Caja)
+    ax1.set_aspect('equal')
+    ax1.set_title("Órbita del planeta", color='white')
+    ax1.set_facecolor("#0a0f2c")
+    ax1.tick_params(colors='white')
+    
+    # Configurar subplot 2 (curva de luz)
+    ax2.set_xlim(0, Pasos)
+    ax2.set_ylim(83, 101)  # Rango ajustado para mejor visualización
+    ax2.set_title("Curva de luz simulada", color='white')
+    ax2.set_xlabel("Tiempo (frames)", color='white')
+    ax2.set_ylabel("Brillo (%)", color='white')
+    ax2.set_facecolor("#0a0f2c")
+    ax2.tick_params(colors='white')
+    
+    # Dibujar estrella fija
     estrella = Circle((0, 0), Radio_star, color='#FFD700')
-    planeta = Circle((x, y), Radio_planet, color='#8A2BE2')
-    axs[0].add_patch(estrella)
-    axs[0].add_patch(planeta)
+    ax1.add_patch(estrella)
+    
+    # Inicializar elementos de la animación
+    planeta = Circle((0, 0), Radio_planet, color='#8A2BE2')
+    ax1.add_patch(planeta)
+    line, = ax2.plot([], [], color='#00BFFF')
+    point = ax2.scatter([], [], color='#7CFC00', zorder=5)
+    
+    # Función de inicialización
+    def init():
+        planeta.center = (0, 0)
+        line.set_data([], [])
+        point.set_offsets(np.empty((0, 2)))
+        return planeta, line, point
+    
+    # Función de animación
+    def animate(frame):
+        theta = 2 * np.pi * frame / Pasos
+        x = np.cos(theta) * Orbita
+        y = np.sin(theta) * Orbita * np.cos(Inclinacion)
+        z = np.sin(theta) * Orbita
 
-    # Subplot 2: curva de luz
-    axs[1].set_xlim(0, Pasos)
-    axs[1].set_ylim(brillo_val - 0.5, 101)
-    axs[1].set_title("Curva de luz simulada", color='white')
-    axs[1].set_xlabel("Tiempo (frames)", color='white')
-    axs[1].set_ylabel("Brillo (%)", color='white')
-    axs[1].set_facecolor("#0a0f2c")
-    axs[1].tick_params(colors='white')
-    axs[1].plot(brillo, color='#00BFFF')
-    axs[1].scatter(0, brillo_val, color='#7CFC00', zorder=5)
-
-    placeholder = st.empty()
-    placeholder.pyplot(fig, use_container_width=True)
-    plt.close(fig)
-
-# Botón para iniciar simulación
-    start_sim = st.sidebar.button("▶ Iniciar simulación")
-
-    if start_sim:
-        brillo = []
-        for frame in range(Pasos):
-            theta = 2 * np.pi * frame / Pasos
-            x = np.cos(theta) * Orbita
-            y = np.sin(theta) * Orbita * np.cos(Inclinacion)
-            z = np.sin(theta) * Orbita
-
-            if z > 0:
-                brillo_val = 100
-            else:
-                inter = area_interseccion_circulos(0, 0, Radio_star, x, y, z, Radio_planet)
-                brillo_val = 100 * (1 - inter / (np.pi * Radio_star**2))  
-            brillo.append(brillo_val)
-
-            fig, axs = plt.subplots(1, 2, figsize=(18, 10))
-            axs = axs.flatten()
-
-            axs[0].set_xlim(-Caja, Caja)
-            axs[0].set_ylim(-Caja, Caja)
-            axs[0].set_aspect('equal')
-            axs[0].set_title("Órbita del planeta", color='white')
-            axs[0].set_facecolor("#0a0f2c")
-            axs[0].tick_params(colors='white')
-            estrella = Circle((0, 0), Radio_star, color='#FFD700')
-            planeta = Circle((x, y), Radio_planet, color='#8A2BE2')
-            axs[0].add_patch(estrella)
-            axs[0].add_patch(planeta)
-            
-            
-
-            axs[1].set_xlim(0, Pasos)
-            axs[1].set_ylim(min(brillo) - 0.5, 101)
-            axs[1].set_title("Curva de luz simulada", color='white')
-            axs[1].set_xlabel("Tiempo (frames)", color='white')
-            axs[1].set_ylabel("Brillo (%)", color='white')
-            axs[1].set_facecolor("#0a0f2c")
-            axs[1].tick_params(colors='white')
-            axs[1].plot(brillo, color='#00BFFF')
-            axs[1].scatter(frame, brillo_val, color='#7CFC00', zorder=5)
-
-            placeholder.pyplot(fig, use_container_width=True)
-            plt.close(fig)
-            time.sleep(0.005)
+        if z > 0:
+            brillo_val = 100
+        else:
+            inter = area_interseccion_circulos(0, 0, Radio_star, x, y, z, Radio_planet)
+            brillo_val = 100 * (1 - inter / (np.pi * Radio_star**2))
+        
+        # Actualizar posición del planeta
+        planeta.center = (x, y)
+        
+        # Actualizar curva de luz
+        x_data = np.arange(frame + 1)
+        y_data = [100] * (frame + 1)  # Valor inicial
+        for i in range(frame + 1):
+            theta_i = 2 * np.pi * i / Pasos
+            z_i = np.sin(theta_i) * Orbita
+            if z_i <= 0:
+                x_i = np.cos(theta_i) * Orbita
+                y_i = np.sin(theta_i) * Orbita * np.cos(Inclinacion)
+                inter_i = area_interseccion_circulos(0, 0, Radio_star, x_i, y_i, z_i, Radio_planet)
+                y_data[i] = 100 * (1 - inter_i / (np.pi * Radio_star**2))
+        
+        line.set_data(x_data, y_data)
+        point.set_offsets([[frame, brillo_val]])
+        
+        return planeta, line, point
+    
+    # Botón para iniciar simulación
+    if st.sidebar.button("▶ Iniciar simulación"):
+        # Crear la animación
+        ani = animation.FuncAnimation(
+            fig, animate, frames=Pasos,
+            init_func=init, blit=True, interval=50, repeat=False
+        )
+        
+        # Mostrar la animación
+        components.html(ani.to_jshtml(), height=600)
     
     # =============================================================================
-    # NUEVA SECCIÓN: VISUALIZACIÓN DE EXOPLANETAS DESCUBIERTOS (MASA vs PERÍODO)
+    # SECCIÓN DE EXOPLANETAS DESCUBIERTOS
     # =============================================================================
     st.markdown("---")
     st.markdown('<div class="header-box"><h2>📊 Exoplanetas Descubiertos: Masa vs Período Orbital</h2></div>', unsafe_allow_html=True)
     
-    # Cargar datos de exoplanetas
     df = load_exoplanet_data()
     
     if not df.empty:
-        # Calcular el rango de años
         min_year = int(df['disc_year'].min())
         max_year = int(df['disc_year'].max())
-        current_year = 2025  # Puedes cambiarlo al año actual si prefieres
+        current_year = 2025
         
-        # Crear columnas para controles y métricas
         col_controls, col_metrics = st.columns([1, 3])
         
         with col_controls:
-            # Slider para seleccionar el año
             selected_year = st.slider(
                 "Año de descubrimiento",
                 min_value=min_year,
@@ -225,41 +206,13 @@ def main():
                 key="year_slider",
                 format="%d"
             )
-            
-            # Selector para métodos de descubrimiento
-            #methods = df['discoverymethod'].dropna().unique()
-            #selected_methods = st.multiselect(
-            #    "Métodos de descubrimiento",
-            #    options=methods,
-            #    default=methods,
-            #    key="method_selector"
-            #)
-            
-            # Mostrar información sobre métodos
-            #st.markdown("""
-            #<div class="metric-box">
-            #    <p><strong>Métodos de descubrimiento:</strong></p>
-            #    <p>● Transit: Tránsito</p>
-            #    <p>● Radial Velocity: Velocidad Radial</p>
-            #    <p>● Microlensing: Microlente</p>
-            #    <p>● Imaging: Imagen directa</p>
-            #    <p>● Timing: Púlsar/Timing</p>
-            #    <p>● Other: Otros métodos</p>
-            #</div>
-            #""", unsafe_allow_html=True)
         
         with col_metrics:
-            # Filtrar datos hasta el año seleccionado
             df_filtered = df[df['disc_year'] <= selected_year]
-
-                             
-            
-            # Calcular estadísticas
             planets_count = len(df_filtered)
             years_covered = selected_year - min_year + 1
             avg_per_year = planets_count / years_covered if years_covered > 0 else 0
             
-            # Mostrar métricas
             col1, col2, col3 = st.columns(3)
             with col2:
                 st.markdown(f'<div class="metric-box"><h3>🌍 {planets_count}</h3><p>Exoplanetas descubiertos</p></div>', 
@@ -271,27 +224,22 @@ def main():
                 st.markdown(f'<div class="metric-box"><h3>📈 {avg_per_year:.1f}</h3><p>Promedio por año</p></div>', 
                            unsafe_allow_html=True)
         
-        # Crear figura principal
-        fig, ax = plt.subplots(figsize=(10, 6))
-        fig.patch.set_facecolor('#0a0f2c')
+        fig2, ax = plt.subplots(figsize=(10, 6))
+        fig2.patch.set_facecolor('#0a0f2c')
         ax.set_facecolor('#0a0f2c')
-        
-        # Configurar escalas logarítmicas
         ax.set_xscale('log')
         ax.set_yscale('log')
         
-        # Definir colores por método de descubrimiento
         method_colors = {
-            'Transit': '#FFD700',      # Amarillo
-            'Radial Velocity': '#8A2BE2',  # Morado
-            'Microlensing': '#00BFFF',     # Azul claro
-            'Imaging': '#7CFC00',       # Verde
-            'Pulsar Timing': '#FF6347', # Rojo anaranjado
-            'Timing': '#FF6347',        # Rojo anaranjado
-            'Other': '#A9A9A9'          # Gris
+            'Transit': '#FFD700',
+            'Radial Velocity': '#8A2BE2',
+            'Microlensing': '#00BFFF',
+            'Imaging': '#7CFC00',
+            'Pulsar Timing': '#FF6347',
+            'Timing': '#FF6347',
+            'Other': '#A9A9A9'
         }
         
-        # Crear dispersión
         for method, color in method_colors.items():
             subset = df_filtered[df_filtered['discoverymethod'] == method]
             ax.scatter(
@@ -304,13 +252,11 @@ def main():
                 edgecolors='none'
             )
         
-        # Líneas de referencia para planetas
         ax.axhline(y=1, color='white', linestyle='--', alpha=0.3)
-        ax.axhline(y=317.83, color='white', linestyle='--', alpha=0.3)  # 1 Júpiter
-        ax.axvline(x=365, color='white', linestyle='--', alpha=0.3)     # 1 año
-        ax.axvline(x=1, color='white', linestyle='--', alpha=0.3)       # 1 día
+        ax.axhline(y=317.83, color='white', linestyle='--', alpha=0.3)
+        ax.axvline(x=365, color='white', linestyle='--', alpha=0.3)
+        ax.axvline(x=1, color='white', linestyle='--', alpha=0.3)
         
-        # Etiquetas de referencia
         ax.text(0.5, 0.5, 'Tierra', color='white', alpha=0.7, fontsize=9, 
                 transform=ax.get_yaxis_transform(), va='center')
         ax.text(0.5, 317.83*1.1, 'Júpiter', color='white', alpha=0.7, fontsize=9,
@@ -318,12 +264,10 @@ def main():
         ax.text(1.2, 0.02, '1 día', color='white', alpha=0.7, fontsize=9, rotation=90)
         ax.text(400, 0.02, '1 año', color='white', alpha=0.7, fontsize=9, rotation=90)
         
-        # Etiquetas de ejes
         ax.set_xlabel("Período Orbital (días, escala log)", fontsize=12, color='white')
         ax.set_ylabel("Masa del Planeta (Masas Terrestres, escala log)", fontsize=12, color='white')
         ax.set_title(f"Exoplanetas descubiertos hasta {selected_year}", fontsize=16, color='white')
         
-        # Leyenda
         ax.legend(
             loc='upper right',
             facecolor='#1a1f4c',
@@ -332,18 +276,13 @@ def main():
             framealpha=0.7
         )
         
-        # Límites de ejes
         ax.set_xlim(0.1, 10000)
         ax.set_ylim(0.1, 1000000)
-        
-        # Cuadrícula
         ax.grid(True, which="both", ls="--", color='#2a2f5c', alpha=0.5)
         
-        # Mostrar gráfico
-        st.pyplot(fig, use_container_width=True)
-        plt.close(fig)
+        st.pyplot(fig2, use_container_width=True)
+        plt.close(fig2)
         
-        # Pie de página
         st.caption("Nota: Los datos muestran exoplanetas confirmados. Lineas rectas debido a valores sin cálculo de masa")
     else:
         st.warning("No se encontraron datos de exoplanetas para mostrar.")
