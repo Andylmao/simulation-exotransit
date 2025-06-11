@@ -79,7 +79,7 @@ def main():
     
     if st.session_state.mostrar_info:
         with st.expander("ℹ️ Sugerencia de visualización", expanded=True):
-            st.markdown("💡 Puedes maximizar las gráficas usando el ícono 🔳 en la esquina superior de la gráfica")
+            st.markdown("💡 Puedes visualizar en bucle la animación marcando el simbolo 🔘🔵🔘 del medio")
     
     st.sidebar.header("⚙️ Parámetros de Simulación")
     st.sidebar.markdown("""
