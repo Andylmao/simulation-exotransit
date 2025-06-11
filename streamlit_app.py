@@ -174,11 +174,13 @@ def main():
     # Botón para iniciar simulación
     if st.sidebar.button("▶ Iniciar simulación"):
         # Crear la animación
-        ani = animation.FuncAnimation(
-            fig, animate, frames=Pasos,
-            init_func=init, blit=True, interval=50, repeat=False
-        )
-        
+        with st.spinner('⏳ Generando animación de tránsito...'):
+            ani = animation.FuncAnimation(
+                fig, animate, frames=Pasos,
+                init_func=init, blit=True, interval=50, repeat=False
+            )
+            html_anim = ani.to_jshtml()
+            
         # Mostrar la animación
         components.html(ani.to_jshtml(), height=600)
     
